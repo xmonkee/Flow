@@ -1,0 +1,15 @@
+#lang slideshow
+
+(define grid
+  (rectangle (* 1/4 client-w) (* 1/4 client-h)))
+
+(define (update-in f selections items)
+  (define (update-int num sel its)
+    (if (or (eq? '() sel) (eq? '() its)) its
+        (if (eq? num (car sel))
+            (cons (f (car its)) (update-int (+ 1 num) (cdr sel) (cdr its)))
+            (cons (car its) (update-int (+ 1 num) sel (cdr its))))))
+    (update-int 0 selections items))
+
+(define (gridify cols rows items)
+  (hl-append (
