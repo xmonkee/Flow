@@ -91,10 +91,11 @@
 (define (flow-slide frames flws)
   ;; '(A B C) -> '((A) (B A) (C B A))
   (define (prefixes lst)
-    (reverse (foldl (λ (item acc) 
-                       (cons (cons item 
-                                  (if (empty? acc) '() (car acc))) 
-                            acc)) '() lst)))
+    (reverse (foldl 
+               (λ (item acc) 
+                  (cons (cons item 
+                              (if (empty? acc) '() (car acc))) 
+                        acc)) '() lst)))
   (let* ([steps (prefixes frames)]
          [alts (map (λ (flist) (list (show-manyflows flws flist))) steps)])
     (slide 'alts alts)))
