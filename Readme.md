@@ -11,3 +11,7 @@ Here we address this by elevating picts to "flows", which aim to be as composabl
 A flow can be thought of as a mapping from symbol to pict, and a flow-slide can be thought of as a composition of flows and a list of "frames", or symbols, that can hook into the constituent flows and call upon specific picts.
 
 
+##Under development - do not use
+
+
+
