@@ -1,5 +1,5 @@
 #lang racket
-(require flow/flow)
+(require "../flow/flow.rkt")
 (require slideshow)
 
 (define jf
