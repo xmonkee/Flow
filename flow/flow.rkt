@@ -86,16 +86,19 @@
         (pin-over final x y (flow-get-pict flw frames))))))
 
 
-;; Make a slide from a manyflows. Frames are list of keys that 
-;; may or may not be present in any of the child flows
+;; Make a slide from a manyflows. Frames are a list of keys 
+;; or other list of keys, that may or may not be present in
+;; any of the child flows. If a frame is a list instead of 
+;; a single key, all the keys in that sublist are called
 (define (flow-slide frames flws)
-  ;; '(A B C) -> '((A) (B A) (C B A))
+  ;; '(A (B C) D) -> '((A) (B C A) (D B C A))
   (define (prefixes lst)
     (reverse (foldl 
                (λ (item acc) 
-                  (cons (cons item 
+                  (let ([join (if (list? item) append cons)])
+                  (cons (join item 
                               (if (empty? acc) '() (car acc))) 
-                        acc)) '() lst)))
+                        acc))) '() lst)))
   (let* ([steps (prefixes frames)]
          [alts (map (λ (flist) (list (show-manyflows flws flist))) steps)])
     (slide 'alts alts)))
