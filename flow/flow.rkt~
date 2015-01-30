@@ -89,12 +89,13 @@
 ;; Make a slide from a manyflows. Frames are list of keys that 
 ;; may or may not be present in any of the child flows
 (define (flow-slide frames flws)
-  ;; '(A B C) -> '((A) (B A) (C B A))
-  (define (prefixes lst)
-    (reverse (foldl (λ (item acc) 
-                       (cons (cons item 
-                                  (if (empty? acc) '() (car acc))) 
-                            acc)) '() lst)))
-  (let* ([steps (prefixes frames)]
-         [alts (map (λ (flist) (list (show-manyflows flws flist))) steps)])
+  (let-values ([(alts frames_) (for/fold ([alts    '()]
+                                          [frames_ (list (car frames))])
+                                         ([frame frames])
+                                 (values
+                                  (cons (list (show-manyflows flws frames_)) alts)
+                                  (cons frame frames_)))])
     (slide 'alts alts)))
+
+
+

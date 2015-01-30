@@ -1,21 +1,24 @@
 #lang racket
-(require flow/flow)
+(require "../flow/flow.rkt")
 (require slideshow)
 
-(define jf
-  (let* ([r (filled-rectangle 100 100)]
-         [red-r (colorize r "red")]
-         [c (ellipse 200 100)]
-         [blue-c (colorize c "blue")]
-         [f1 (make-flow (hash 'default r 'snd c 'trd (para #:fill? #f "FLOWS") 'fth blue-c))]
-         [f2 (make-flow (hash 'default red-r 'trd r))]
-         [f3 (make-flow (hash 'default blue-c 'snd r 'frt red-r 'fth c))])
-         (join-flows vc-append 
-                     (join-flows ht-append f1 f2 f3)
-                     (ghost (rectangle gap-size gap-size))
-                     (rectangle 200 200))))
-    
+(define (mktext s)
+  (para #:fill? #f s))
 
-(flow-slide (list 'default 'snd 'trd 'frt 'fth 'frt 'snd 'default 'fth) jf)
+(define jf
+  (let* ([f1 (make-flow (hash 'default (mktext "A 1")
+                              'snd (mktext "A 2")
+                              'trd (mktext "A 3")
+                              'fth (mktext "A 5")))]
+         [f2 (make-flow (hash 'default (mktext "B 1")
+                              'trd (mktext "B 3")))]
+         [f3 (make-flow (hash 'default (mktext "A 1")
+                              'snd (mktext "C 2")
+                              'frt (mktext "C 4")
+                              'fth (mktext "C 5")))])
+                           (join-flows ht-append f1 f2 f3)))
+                     
+
+(flow-slide (list 'default 'snd 'trd 'frt 'fth) jf)
 
 
