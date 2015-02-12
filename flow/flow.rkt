@@ -42,13 +42,13 @@
     (make-flow (make-immutable-hash pairs))))
 
 ;; Make a flow that unfolds like the original 'steps parameter of slide
-(define (make-named-steps name pict-lst)
+(define (make-named-steps name #:join-fn (join-fn vl-append) pict-lst)
   (define (pct-steps acc pict-lst)
     (if (empty? pict-lst)
       acc
       (if (empty? acc)
         (pct-steps (list (car pict-lst)) (cdr pict-lst))
-        (pct-steps (cons (vl-append (car acc) (car pict-lst)) acc) (cdr pict-lst)))))
+        (pct-steps (cons (join-fn (car acc) (car pict-lst)) acc) (cdr pict-lst)))))
   (make-named-flow name  (reverse (pct-steps '() pict-lst))))
 
 
@@ -176,7 +176,7 @@
   (if tflow
     (join-flows vc-append 
                 (join-flows cc-superimpose (blank client-w title-h) tflow)
-                (blank (* 2 gap-size))
+                ;;(blank (* 2 gap-size))
                 (join-flows cc-superimpose full-page rflows))
     rflows))
 

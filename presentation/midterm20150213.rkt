@@ -5,8 +5,8 @@
 
 (define (title txt)
   (cc-superimpose
-   (colorize (filled-rectangle client-w 50) "black")
-   (colorize (para #:fill? #f txt) "white")))
+   (colorize (filled-rectangle client-w 50) "white")
+   (colorize (para #:fill? #f txt) "black")))
 
 (define (st txt)
   (make-flow (title txt)))
@@ -90,141 +90,130 @@
     #:title titles
     (make-flow pct-pct)))
 
+
 ;; Slides
 (intro)
 (background)
 (benefits)
 (racket)
 (pict-slide)
+(require "borrowed.rkt")
+(pct/sld)
+(slide 
+  #:title "Introducing Flow - A Better Abstraction"
+  'next
+  (t "A Flow is a story told in pictures")
+  'next
+  (t "A Flow is a mapping from keyframe to pict")
+  'next
+  (t "Flows are just as composable as Picts")
+  'next
+  (t "Flows are hierarchical data structures")
+  )
 
+(define (redsq l txt)
+  (cc-superimpose (colorize (filled-rectangle l l) "red")
+                  (colorize (text txt (current-main-font) 12) "white") )) 
 
+(define (bluec l txt)
+  (cc-superimpose (colorize (filled-ellipse l l) "blue") 
+                  (colorize (text txt (current-main-font) 12) "white") )) 
 
-(slide
- #:title "Appending Picts"
- (vl-append (current-line-sep)
-            (frame (t "This is")) (frame (tt "vl-append")))
- (vc-append (current-line-sep)
-            (frame (t "This is")) (frame (tt "vc-append")))
- (vr-append (current-line-sep)
-            (frame (t "This is")) (frame (tt "vr-append"))))
+(define squares
+  (make-named-flow 'squares (cons (t "Flow 1") (map redsq '(50 100 150 200) 
+                               '("scene 1" "scene 2" "scene 3" "scene 4")))))
 
-(slide
- #:title "Horizontal Appending"
- (hc-append (frame (t "This is")) (frame (vr-append (tt "hc-append")
-                                                    (t "obviously"))))
- (ht-append (frame (t "This is")) (frame (vr-append (tt "ht-append")
-                                                    (t "obviously"))))
- (hb-append (frame (t "This is")) (frame (vr-append (tt "hb-append")
-                                                    (t "obviously")))))
+(define circles
+  (make-named-flow 'circles (cons (t "Flow 2") (map bluec '(50 100 150 200) 
+                               '("scene 1" "scene 2" "scene 3" "scene 4")))))
 
-(slide
- #:title "Text Alignment"
- (hbl-append (frame (scale (tt "hbl-append") 1.5))
-             (frame (t "aligns text baselines")))
- (para "It's especially useful for font mixtures")
- (hbl-append (frame (scale (tt "htl-append") 1.5))
-             (frame (t "is the same for single lines")))
- (para "The difference between" (tt "htl-append")
-            "and" (tt "hbl-append") "shows up with multiple lines:")
- (hbl-append (frame (scale (t "bottom lines align") 1.5))
-             (frame (vl-append (t "when using") (tt "hbl-append"))))
- (htl-append (frame (scale (t "top lines align") 1.5))
-             (frame (vl-append (t "when using") (tt "htl-append")))))
+(flow-slide #:title (t "Flows - 2 Basic Flows") '(default 
+                                   squares-2 squares-3 squares-4 
+                                   circles-2 circles-3 circles-4)
+           (join-flows vc-append 
+                       (scale 
+                         (code 
+               (flow-slide #:title (t "Flows - 2 Basic Flows") '(default 
+                                                  squares-2 squares-3 squares-4 
+                                                  circles-2 circles-3 circles-4)
+                           (join-flows hc-append squares circles))) 0.5)
+                       (ghost (rectangle 100 100))
+                       (join-flows hc-append squares circles)))
 
-(slide
- #:title "Superimposing"
- (cc-superimpose (t "X") (t "O"))
- (para "The" (tt "cc-superimpose") 
-            "function puts picts on top of each other, centered")
- (para "Each of" (tt "l") "," (tt "r") ", and" (tt "c")
-            "is matched with each of"
-            (tt "t") "," (tt "b") "," (tt "c") "," (tt "bl") ", and" (tt "tl")
-            "in all combinations with" (tt "-superimpose"))
- (para "For example," (tt "cbl-superimpose") ":")
- (cbl-superimpose (frame (scale (t "one line") 1.5))
-                  (frame
-                   (colorize (vl-append (t "two")
-                                        (t "lines"))
-                             "blue"))))
+(flow-slide #:title (t "Flows - Evolving together") 
+            '(default (squares-2 circles-2) 
+                      (squares-3 circles-3)
+                      (squares-4 circles-4))
+           (join-flows vc-append 
+                       (scale 
+                         (code 
+               (flow-slide #:title (t "Flows - 2 Basic Flows") '(default 
+                                                  (squares-2 circles-2) 
+                                                  (squares-3 circles-3) 
+                                                  (square-4 circles-4))
+                           (join-flows hc-append squares circles))) 0.5)
+                       (ghost (rectangle 100 100))
+                       (join-flows hc-append squares circles)))
 
-(define (note . l)
-  (colorize (para #:align 'right l) "blue"))
-(define orientations 
-  (map (lambda (x) (* pi x)) '(0 1/4 1/2 3/4 1 5/4 6/4 7/4)))
-(define (show-arrows code-arrow t-arrow arrow)
-  (slide
-   #:title "Arrows"
-   (para "The" code-arrow "function creates an"
-              t-arrow "of a given size and orientation (in radians)")
-   (blank)
-   (para "Simple: " (arrow gap-size pi))
-   (blank)
-   (para "Fun:")
-   (apply
-    vc-append
-    (current-line-sep)
-    (map (lambda (shift)
-           (colorize
-            (apply hc-append gap-size (map (lambda (o) 
-                                             ;; Here's the other use of arrow
-                                             (arrow gap-size (+ o (* shift pi 1/32))))
-                                           orientations))
-            (scale-color (add1 shift) "green")))
-         '(0 1 2 3 4 5 6 7)))
-   (blank)
-   (note "(That's 64 uses of " code-arrow ")")))
-(show-arrows (code arrow) (t "arrow") arrow)
-(show-arrows (code arrowhead) (t "arrowhead") arrowhead)
+(flow-slide #:title (t "Flows - Rearranged and Interleaving") 
+            '(default squares-2 circles-2 
+                      squares-3 circles-3
+                      squares-4 circles-4)
+           (join-flows vc-append 
+                       (scale 
+                         (code 
+               (flow-slide #:title (t "Flows - 2 Basic Flows") '(default 
+                                                  squares-2 circles-2 
+                                                  squares-3 circles-3 
+                                                  square-4 circles-4)
+                           (join-flows vc-append squares circles))) 0.5)
+                       (ghost (rectangle 100 100))
+                       (join-flows vc-append squares circles)))
 
-(require pict/face)
-(slide
- #:title "Faces"
- (para "The" (code pict/face)
-            "library makes faces")
- (blank)
- (hc-append
-  (* 3 gap-size)
-  (face 'happy "yellow")
-  (face 'badly-embarrassed)))
+(slide #:title "Features"
+       'next
+       (t "Define and combine flows seperately")
+       'next
+       (t "Use full power of pict combinators")
+       'next
+       (t "Highly Reusable")
+       'next
+       (t "Much more natural/cleaner code")
+       'next
+       (t "Slides less brittle and easier to re-organize")) 
 
+(slide #:title "Prespectives"
+       'next
+       (t "Solving the Pict 'Expression Problem'")
+       'next
+       (t "Composing in space AND time")
+       'next
+       (t "Abstract over and synthesize Picts and Slides"))
+(slide #:title "Project Goals and Future Work"
+       'next
+       (t "Animations")
+       'next
+       (t "GUI interface")
+       'next
+       (t "Extend to use other rendering engines"))
 
-(slide
- #:title "Steps"
- (item "Suppose you want to show only one item at a time")
- 'next
- (item "In addition to body picts, the" (code slide) 
-            "functions recognize certain staging symbols")
- (item "Use" (code 'next) "in a sequence of" (code slide)
-            "arguments to create multiple slides, one"
-            "containing only the preceding content, and another"
-            "with the remainder")
- 'next
- (blank)
- (colorize
-  (para #:fill? #f
-        (code 'next) "is not tied to" (code item)
-        ", though it's often used with items")
-  "blue"))
+(slide (code 
+           (provide 
+             make-flow 
+             make-steps
+             join-flows
+             flow-slide))
+       'next
+       (t "Thank You"))
 
-
-(slide
- #:title "Alternatives"
- (para "Steps can break up a linear slide, but sometimes"
-            "you need to replace one thing with something else")
- 'alts 
- (list (list 
-        (para #:fill? #f "For example, replace this..."))
-       (list
-        (para #:fill? #f "... with something else")
-        'next
-        (blank)
-        (item "An" (code 'alts) "in a sequence"
-                   "must be followed by a list of lists")
-        (item "Each list is a sequence, a different conclusion for the slide's sequence")))
- (item "Anything after the list of lists is folded into the last alternative")
- 'next
- (blank)
- (para "Of course, you can mix" (code 'alts) "and"
-            (code 'next) "in interesting ways"))
-
-
+;; composable stories
+;; features - define flows first, combine later
+;; features - use the full power of pict
+;; features - reusability
+;; second perspective - the pict "expression problem"
+;; third perspective - compose in space AND time
+;; fourth perspective - abstract over both pict and slide
+;; benefits - more natural 
+;; benefits - better code
+;; future work - animations
+;; future work - gui
