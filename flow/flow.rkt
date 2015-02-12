@@ -1,5 +1,5 @@
 #lang racket
-(provide make-flow make-named-flow join-flows flow-slide flow->manyflows scale-flow)
+(provide make-flow make-named-flow make-named-steps flow-set-pict join-flows flow-slide flow->manyflows scale-flow)
 
 (require slideshow)
 (require racket/match)
@@ -19,15 +19,15 @@
 ;; Make a flow from a single pict (constant flow) or a hash-table of (symbol . picts)
 (define (make-flow pcts)
   (if (hash? pcts)
-      (let ([canvas
-             (for/fold ([canvas (blank)])
-                ([(frm pct) pcts])
-               (max-box canvas pct))])
-        (flow canvas pcts))
-      ;if not hash it's a single pict
-      (let ([canvas (max-box pcts)]
-        [alts (hash 'default pcts)])
-        (flow canvas alts))))
+    (let ([canvas
+            (for/fold ([canvas (blank)])
+                      ([(frame pct) pcts])
+                      (max-box canvas pct))])
+      (flow canvas pcts))
+    ;if not hash it's a single pict
+    (let ([canvas (max-box pcts)]
+          [alts (hash 'default pcts)])
+      (flow canvas alts))))
 
 
 ;; Make a flow with frames named ['defaul, name-2, name-3,...]
@@ -35,18 +35,29 @@
   (define (newsym num)
     (string->symbol (string-append (symbol->string name) "-" (number->string num))))
   (let* ([names (stream-cons 'default 
-                            (stream-map newsym (in-naturals 2)))]
+                             (stream-map newsym (in-naturals 2)))]
          [pairs (for/list ([name names]
                            [pct pict-lst])
-                  (cons name pct))])
-    (make-flow (make-hash pairs))))
+                          (cons name pct))])
+    (make-flow (make-immutable-hash pairs))))
+
+;; Make a flow that unfolds like the original 'steps parameter of slide
+(define (make-named-steps name pict-lst)
+  (define (pct-steps acc pict-lst)
+    (if (empty? pict-lst)
+      acc
+      (if (empty? acc)
+        (pct-steps (list (car pict-lst)) (cdr pict-lst))
+        (pct-steps (cons (vl-append (car acc) (car pict-lst)) acc) (cdr pict-lst)))))
+  (make-named-flow name  (reverse (pct-steps '() pict-lst))))
+
 
 ;; Add a key-pict pair to a flow
 (define (flow-set-pict flw frame-name pct)
   (match flw [(flow canvas alts)
               (flow 
-               (max-box canvas pct) 
-               (hash-set alts frame-name pct))]))
+                (max-box canvas pct) 
+                (hash-set alts frame-name pct))]))
 
 
 ;; Get a pict from a flow given it's key
@@ -62,9 +73,9 @@
 
 (define (promote flw)
   (match flw
-          [(pict . _) (promote (make-flow flw))]
-          [(flow . _) (flow->manyflows flw)]
-          [(manyflows . _) flw]))
+         [(pict . _) (promote (make-flow flw))]
+         [(flow . _) (flow->manyflows flw)]
+         [(manyflows . _) flw]))
 
 ;; Scale a flow by given factor. Scales all alts
 (define (scale-flow factor flw)
@@ -88,20 +99,20 @@
 ;; and return a manyflows
 (define (add-flow join-fn flws flw)
   (match flws 
-    [(flow . _) 
-      (add-flow join-fn (flow->manyflows flws) flw)] 
-     [(pict . _)
-      (add-flow join-fn (make-flow flws) flw)]
-     [(manyflows canvas children) 
-      (match flw
-        [(flow canvas alts)
-         (manyflows (join-fn (manyflows-canvas flws) (flow-canvas flw))
-                    (cons flw (manyflows-children flws)))]
-        [(manyflows canvas2 children2)
-         (manyflows (join-fn (manyflows-canvas flws) (manyflows-canvas flw))
-                    (append (manyflows-children flws) (manyflows-children flw)))]
-        [(pict . _)
-         (add-flow join-fn flws (make-flow flw))])]))
+         [(flow . _) 
+          (add-flow join-fn (flow->manyflows flws) flw)] 
+         [(pict . _)
+          (add-flow join-fn (make-flow flws) flw)]
+         [(manyflows canvas children) 
+          (match flw
+                 [(flow canvas alts)
+                  (manyflows (join-fn (manyflows-canvas flws) (flow-canvas flw))
+                             (cons flw (manyflows-children flws)))]
+                 [(manyflows canvas2 children2)
+                  (manyflows (join-fn (manyflows-canvas flws) (manyflows-canvas flw))
+                             (append (manyflows-children flws) (manyflows-children flw)))]
+                 [(pict . _)
+                  (add-flow join-fn flws (make-flow flw))])]))
 
 
 
@@ -117,8 +128,8 @@
   (let ([canvas (manyflows-canvas flws)])
     (for/fold ([final (manyflows-canvas flws)])
               ([flw (manyflows-children flws)])
-      (let-values ([(x y) (lt-find canvas (flow-canvas flw))])
-        (pin-over final x y (flow-get-pict flw frames))))))
+              (let-values ([(x y) (lt-find canvas (flow-canvas flw))])
+                          (pin-over final x y (flow-get-pict flw frames))))))
 
 (define (scale-factor canvas frame)
   (let* ([cw (pict-width canvas)]
@@ -147,8 +158,8 @@
          [factor (scale-factor canvas titleless-page)])
     (for/fold ([final (scale (manyflows-canvas flws) factor)])
               ([flw (manyflows-children flws)])
-      (let-values ([(x y) (lt-find canvas (flow-canvas flw))])
-        (pin-over final (* factor x) (* factor y) (flow-get-pict flw frames))))))
+              (let-values ([(x y) (lt-find canvas (flow-canvas flw))])
+                          (pin-over final (* factor x) (* factor y) (flow-get-pict flw frames))))))
 
 
 
@@ -163,7 +174,7 @@
 
 (define (add-title rflows tflow)
   (if tflow
-    (join-flows vl-append 
+    (join-flows vc-append 
                 (join-flows cc-superimpose (blank client-w title-h) tflow)
                 (blank (* 2 gap-size))
                 (join-flows cc-superimpose full-page rflows))
