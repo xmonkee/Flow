@@ -1,0 +1,1 @@
+("6.1.1" ("52a01c956dd715b75d75e315da97531d7f97e570" . "c9d1065de371094dd6a96048b036d02c7ee29139") (collects #"pict" #"face.rkt") (collects #"slideshow" #"main.rkt") (collects #"slideshow" #"code.rkt") (collects #"racket" #"main.rkt") (collects #"pict" #"balloon.rkt") (collects #"flow" #"flow.rkt") (collects #"racket" #"runtime-config.rkt"))
