@@ -1,5 +1,14 @@
 #lang racket
-(provide make-flow make-named-flow make-named-steps flow-set-pict join-flows flow-slide flow->manyflows scale-flow)
+(provide 
+  (struct-out flow) 
+  (struct-out manyflows) 
+  make-flow 
+  make-named-flow 
+  make-named-steps 
+  flow-set-pict join-flows 
+  flow->manyflows 
+  scale-flow
+  show-manyflows)
 
 (require slideshow)
 (require racket/match)
@@ -161,34 +170,3 @@
               (let-values ([(x y) (lt-find canvas (flow-canvas flw))])
                           (pin-over final (* factor x) (* factor y) (flow-get-pict flw frames))))))
 
-
-
-;; '(A (B C) D) -> '((A) (B C A) (D B C A))
-(define (prefixes lst)
-  (reverse (foldl 
-             (λ (item acc) 
-                (let ([join (if (list? item) append cons)])
-                  (cons (join item 
-                              (if (empty? acc) '() (car acc))) 
-                        acc))) '() lst))) 
-
-(define (add-title rflows tflow)
-  (if tflow
-    (join-flows vc-append 
-                (join-flows cc-superimpose (blank client-w title-h) tflow)
-                ;;(blank (* 2 gap-size))
-                (join-flows cc-superimpose full-page rflows))
-    rflows))
-
-;; Make a slide from a manyflows. Frames are a list of keys 
-;; or other list of keys, that may or may not be present in
-;; any of the child flows. If a frame is a list instead of 
-;; a single key, all the keys in that sublist are called
-(define (flow-slide frames flws #:title [title #f])
-  (cond [(pict? flws) (flow-slide frames (make-flow flws) #:title title)]
-        [(flow? flws) (flow-slide frames (flow->manyflows flws) #:title title)]
-        [else 
-          (let* ([steps (prefixes frames)]
-                 [flws* (add-title flws title)]
-                 [alts (map (λ (flist) (list (show-manyflows flws* flist))) steps)])
-            (slide 'alts alts))]))

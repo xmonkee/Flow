@@ -1,5 +1,6 @@
 #lang racket
-(require "./../flow/flow.rkt")
+(require flow/flow)
+(require flow/stage)
 (require slideshow)
 (require slideshow/code)
 
