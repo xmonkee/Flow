@@ -1,4 +1,7 @@
 #lang racket
+(provide
+  make-named-flow
+  make-named-steps)
 (require flow/flow)
 (require slideshow)
 

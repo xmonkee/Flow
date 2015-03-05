@@ -1,5 +1,6 @@
 #lang racket
 (require flow/flow)
+(require flow/extra)
 (require flow/stage)
 (require slideshow)
 (require slideshow/code)
