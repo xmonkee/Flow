@@ -25,11 +25,8 @@
 ;; The canvas is the biggest bounding box of all picts in a flow
 (define (map-hash f h)
   (make-immutable-hash 
-    (map (lambda (key val)
-            (cons key (f val))))))
-
-(define (foldl-hash f i h)
-  (foldl f i (map (lambda (key val) val))))
+    (for/list ([(k v) h])
+      (cons k (f v)))))
 
 (define (listify el)
   (if (list? el)
@@ -47,15 +44,12 @@
 (define (max-box-list init pcts)
   (foldl max-box init pcts))
 
-(define (max-box-hash h)
-  (foldl-hash max-box-list (blank) h))
-
 ;; Make a flow from a single pict (constant flow) or a hash-table of (symbol . picts)
 (define (make-flow h)
   (if (hash? h)
-    (let* ([alts ( listify-hash h   )]
-           [c    ( max-box-hash alts)])
-      (flow canvas hl))
+    (let* ([alts   ( listify-hash h   )]
+           [canvas ( max-box-list (blank) (flatten (hash-values alts)))])
+      (flow canvas alts))
     (make-flow 
       (make-immutable-hash
         (list (cons 'default (listify h)))))))
@@ -147,11 +141,4 @@
                  [pct shot])
         (let-values ([(x y) (lt-find canvas (flow-canvas flw))])
           (pin-over final x y pct))))))
-
-(define (show-manyflows-old flws frames)
-  (let ([canvas (manyflows-canvas flws)])
-    (for/fold ([final (manyflows-canvas flws)])
-              ([flw (manyflows-children flws)])
-              (let-values ([(x y) (lt-find canvas (flow-canvas flw))])
-                          (pin-over final x y (flow-get-pict flw frames))))))
 

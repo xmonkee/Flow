@@ -4,17 +4,16 @@
 (require slideshow)
 (require racket/match)
 
-;; tframes are structs containing a keyframe (or a list of keyframes) and a timout
-;; If a frame in the list is a tframe, the frame will expire after the timeout
-;; We can implement animations this way
+;; tframes are pair containing a keyframe (or a list of keyframes) and an optional fps
+;; If a frame in the list is a tframe, the picts in that frame will run at that fps
 
-;; '(A B 0.3 (C D) 0.4 E F) -> 
+;; '(A B 30 (C D) 40 E F) -> 
 ;; '((#f . (A)) 
 ;; (#f . (B A)) 
-;; (0.3 . (C D B A)) 
-;; (0.4 . (E C D B A)) 
+;; (30 . (C D B A)) 
+;; (40 . (E C D B A)) 
 ;; (#f . (F E C D B A)))
-;; the car of any pair is the timeout. The cdr is passed to the manyflows
+;; the car of any pair is the fps The cdr is passed to the manyflows
 (define (prefixes lst)
   (define (grow timeout acc frames lst)
     (if (empty? lst)
@@ -35,7 +34,15 @@
                 (join-flows cc-superimpose full-page rflows))
     rflows))
 
-;; Make a slide from a manyflows. Frames are a list of keys 
+(define (movie fps pcts)
+  (let ([timeout (if fps (/ 1 fps) 0.1)])
+    (if (empty? (cdr pcts))
+      (slide #:timeout #f (car pcts))
+      (begin
+        (slide #:timeout timeout (car pcts))
+        (movie fps (cdr pcts)))))) 
+
+;; Make a movie from a manyflows. Frames are a list of keys 
 ;; or other list of keys, that may or may not be present in
 ;; any of the child flows. If a frame is a list instead of 
 ;; a single key, all the keys in that sublist are called
@@ -46,5 +53,5 @@
           (let* ([steps (prefixes frames)]
                  [flws* (add-title flws title)])
             (map (lambda (tfpair) 
-                   (slide  #:timeout (car tfpair) (show-manyflows flws* (cdr tfpair )))) 
+                   (movie (car tfpair) (show-manyflows flws* (cdr tfpair )))) 
                  steps))]))
