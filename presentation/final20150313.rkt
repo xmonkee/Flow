@@ -5,6 +5,8 @@
 (require slideshow)
 (require slideshow/code)
 
+(define gap (ghost (rectangle gap-size gap-size)))
+
 (define (title txt)
   (cc-superimpose
    (colorize (filled-rectangle client-w 50) "white")
@@ -20,7 +22,7 @@
                           "Background"
                           "Benefits of Programmable Presentations"
                           "Introducing Slideshow"
-                          "Picts - Composable Functional Pictures"
+                          "racket/pict - Composable Functional Pictures"
                           ))))
 
 (define (intro)
@@ -34,13 +36,10 @@
   (make-named-flow 'bg 
                    (map 
                      (curry para #:align 'center) 
-                     (list (t "How do we make presentations?")
-                           (t "WYSIWYG")
-                           (t "How do we (as programmers) want to make presentations?")
-                           (t "With Code!"))))) 
+                     (list (t "Why make presentations with code")))))
 
 (define (background)
-  (flow-slide '((title-2 default) bg-2 bg-3 bg-4)
+  (flow-slide '((title-2 default))
               #:title titles
               bg-steps)) 
 
@@ -48,13 +47,14 @@
   (make-named-steps 'bene
                     (map (curry para #:fill? #t #:align 'center)
                          (list
+                           "Why make presentations with code?"
                            "Abstraction"
                            "Reusability"
                            "Seperation of content and presentation"))))
 
 (define (benefits)
   (flow-slide
-    '((title-3 default) bene-2 bene-3)
+    '((title-3 default) bene-2 bene-3 bene-4)
     #:title titles
     bene))
 
@@ -95,23 +95,21 @@
 
 ;; Slides
 (intro)
-(background)
 (benefits)
 (racket)
 (pict-slide)
-(require "borrowed.rkt")
+(require "borrowed20150313.rkt")
 (pct/sld)
 (slide 
   #:title "Introducing Flow - A Better Abstraction"
   'next
-  (t "A Flow is a story told in pictures")
+  (t "A Flow is a self-contained story told in pictures")
   'next
-  (t "A Flow is a mapping from keyframe to pict")
+  (t "A Flow is a mapping from keys to Scenes")
   'next
-  (t "Flows are just as composable as Picts")
+  (t "A Scene is a list of one of more picts")
   'next
-  (t "Flows are hierarchical data structures")
-  )
+  (t "Flows are hirarchical datastructures just as composable as Picts"))
 
 (define (redsq l txt)
   (cc-superimpose (colorize (filled-rectangle l l) "red")
@@ -122,8 +120,57 @@
                   (colorize (text txt (current-main-font) 12) "white") )) 
 
 (define squares
-  (make-named-flow 'squares (cons (t "Flow 1") (map redsq '(50 100 150 200) 
-                               '("scene 1" "scene 2" "scene 3" "scene 4")))))
+  (make-flow (make-immutable-hash
+               (list 
+                     (cons 'default    (t "Flow 1"))
+                     (cons 'squares-2  (redsq 50  "scene 1"))
+                     (cons 'squares-3  (redsq 100 "scene 2"))
+                     (cons 'squares-4  (redsq 150 "scene 3"))
+                     (cons 'squares-5  (redsq 200 "scene 4"))))))
+
+(define square-pict-code
+  (scale 
+  (code 
+    (define squares
+      (make-flow (make-immutable-hash
+                   (list 
+                     (cons 'default    (t "Flow 1"))
+                     (cons 'squares-2  (redsq 50  "scene 1"))
+                     (cons 'squares-3  (redsq 100 "scene 2"))
+                     (cons 'squares-4  (redsq 150 "scene 3"))
+                     (cons 'squares-5  (redsq 200 "scene 4")))))))
+  0.5))
+
+(define square-pict-code-2
+  (scale 
+    (code 
+      (define squares
+        (make-named-flow 'squares (cons (t "Flow 1") (map redsq '(50 100 150 200) 
+                                 '("scene 1" "scene 2" "scene 3" "scene 4"))))))
+    0.5
+    ))
+
+(define square-stage-code
+  (scale 
+    (code  
+      (flow-slide #:title (t "Flows - Making a Flow")
+                  '(default squares-2 squares-3 squares-4)
+                  (join-flows hc-append
+                              square-code 
+                              gap gap
+                              squares)))
+    0.5))
+
+(define square-code
+  (vl-append gap-size square-pict-code square-stage-code))
+
+(flow-slide #:title (t "Flows - Making a Flow")
+            '(default squares-2 squares-3 squares-4)
+            (join-flows hc-append
+              square-code 
+              gap gap
+              squares))
+
 
 (define circles
   (make-named-flow 'circles (cons (t "Flow 2") (map bluec '(50 100 150 200) 
