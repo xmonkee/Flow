@@ -128,7 +128,7 @@
                      (cons 'squares-4  (redsq 150 "scene 3"))
                      (cons 'squares-5  (redsq 200 "scene 4"))))))
 
-(define square-pict-code
+(define square-pict-code-1
   (scale 
   (code 
     (define squares
@@ -147,8 +147,10 @@
       (define squares
         (make-named-flow 'squares (cons (t "Flow 1") (map redsq '(50 100 150 200) 
                                  '("scene 1" "scene 2" "scene 3" "scene 4"))))))
-    0.5
-    ))
+    0.5))
+
+(define square-pict-code
+  (make-named-flow 'square-pict-code (list square-pict-code-1 square-pict-code-2)))
 
 (define square-stage-code
   (scale 
@@ -162,7 +164,7 @@
     0.5))
 
 (define square-code
-  (vl-append gap-size square-pict-code square-stage-code))
+  (join-flows vl-append gap gap square-pict-code square-stage-code))
 
 (flow-slide #:title (t "Flows - Making a Flow")
             '(default squares-2 squares-3 squares-4)
