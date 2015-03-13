@@ -32,7 +32,7 @@
     #:title titles
     (make-flow (vc-append (para #:fill? #f "Mayank Mandava") 
                           (para #:fill? #f "University of Chicago")
-                          (para #:fill? #f "13 Feb 2015")))))
+                          (para #:fill? #f "13 March 2015")))))
 
 (define bg-steps
   (make-named-flow 'bg 
@@ -361,7 +361,7 @@
         (render (tree-right t)))
       #f))
   (ct-superimpose 
-    (ghost (rectangle 660 200))
+    (ghost (rectangle 760 200))
     (scale (naive-layered (render t)) 3)))
 
 (struct tree (left right))
