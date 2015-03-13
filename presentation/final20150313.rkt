@@ -361,29 +361,32 @@
         (render (tree-right t)))
       #f))
   (ct-superimpose 
-    (ghost (rectangle 400 200))
+    (ghost (rectangle 660 200))
     (scale (naive-layered (render t)) 3)))
 
 (struct tree (left right))
 (define n1 (tree #f #f))
 (define n2 (tree n1 n1))
 (define n3 (tree n2 n2))
+(define n4 (tree n3 n3))
 
 (define tree-flow 
-  (smooth-flow '(default tree-2 tree-3)
+  (smooth-flow '(default tree-2 tree-3 tree-4)
                (make-named-flow
                  'tree
                  (map render-tree
-                      (list n1 n2 n3)))))
+                      (list n1 n2 n3 n4)))))
 
 (define tree-code-flow
-  (smooth-flow '(default tree-2 tree-3)
+  (smooth-flow '(default tree-2 tree-3 tree-4)
                (make-named-steps
                  'tree
                  (list
                    (code (define n1 (tree #f #f)))
                    (code (define n2 (tree n1 n1)))   
-                   (code (define n3 (tree n2 n2)))))))
+                   (code (define n3 (tree n2 n2)))
+                   (code (define n4 (tree n3 n3)))
+                   ))))
 
 
 (slide #:title "Motivating Example - Binary Trees" 
@@ -393,13 +396,14 @@
   (define n1 (tree #f #f))
   (define n2 (tree n1 n1))
   (define n3 (tree n2 n2))
+  (define n4 (tree n3 n3))
 
   (define tree-flow 
-    (smooth-flow '(default tree-2 tree-3)
+    (smooth-flow '(default tree-2 tree-3 tree-4)
                  (make-named-flow
                    'tree
                    (map render-tree
-                        (list n1 n2 n3)))))
+                        (list n1 n2 n3 n4)))))
 
   (define tree-code-flow
     (smooth-flow '(default tree-2 tree-3)
@@ -408,21 +412,23 @@
                    (list
                      (code (define n1 (tree #f #f)))
                      (code (define n2 (tree n1 n1)))   
-                     (code (define n3 (tree n2 n2)))))))
+                     (code (define n3 (tree n2 n2)))
+                     (code (define n4 (tree n3 n3)))
+                     ))))
 
-  (flow-slide #:title (t "Binary Trees") '(default tree-2 tree-3)
+  (flow-slide #:title (t "Binary Trees") '(default tree-2 tree-3 tree-4)
               (join-flows 
                 hc-append 
                 tree-code-flow
                 gap
                 tree-flow))) 0.5))
 
-(flow-slide #:title (t "Binary Trees") '(default tree-2 tree-3)
+(flow-slide #:title (t "Binary Trees") '(default tree-2 tree-3 tree-4)
             (join-flows 
               hc-append 
-              tree-code-flow
+              (scale-flow 0.8 tree-code-flow)
               gap
-              tree-flow))
+              (scale-flow 0.8 tree-flow)))
 
 (slide #:title "Features"
        'next
