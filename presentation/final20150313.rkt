@@ -5,6 +5,7 @@
 (require flow/transitions)
 (require slideshow)
 (require slideshow/code)
+(require pict/tree-layout)
 
 (define gap (ghost (rectangle gap-size gap-size)))
 
@@ -256,6 +257,11 @@
 (define in-st- (pin-line in-st in-st lc-find in-st rc-find #:line-width 3))
 (define all-st (hc-append before-st in-st- after-st))
 
+(slide #:title "racket/slideshow - Animations"
+       (code
+         (slideshow/play)
+         (slideshow/play-n)))
+
 (slide #:title "Flows and Animations"
        (t "Design Choices:")
        'alts
@@ -301,14 +307,19 @@
 (define anim-code
   (scale
     (code 
-      (map-flow (compose1 fade-in car) squares))
-    0.8)
+      (map-flow (compose1 fade-in car) squares)) 1))
+
+(define fade-code
+  (code
+(define (fade-in pct)
+  (for/list ([opacity (range 10)])
+            (cellophane pct (* 0.1  opacity)))))
   )
 
 (flow-slide #:title (t "Animations - Transitions")
             '(default squares-2 squares-3 squares-4)
             (join-flows vc-append 
-                        anim-code 
+                        (scale  (vc-append gap-size fade-code anim-code) 0.6) 
                         gap gap
                         (map-flow (compose1 fade-in car) squares)))
 
@@ -342,6 +353,77 @@
                            gap gap
                            (join-flows hc-append (code (count-code-n 20)) gap (count-flow-n 20)))))
 
+(define (render-tree t) 
+  (define (render t)
+    (if (tree? t)
+      (tree-layout 
+        (render (tree-left t))
+        (render (tree-right t)))
+      #f))
+  (ct-superimpose 
+    (ghost (rectangle 400 200))
+    (scale (naive-layered (render t)) 3)))
+
+(struct tree (left right))
+(define n1 (tree #f #f))
+(define n2 (tree n1 n1))
+(define n3 (tree n2 n2))
+
+(define tree-flow 
+  (smooth-flow '(default tree-2 tree-3)
+               (make-named-flow
+                 'tree
+                 (map render-tree
+                      (list n1 n2 n3)))))
+
+(define tree-code-flow
+  (smooth-flow '(default tree-2 tree-3)
+               (make-named-steps
+                 'tree
+                 (list
+                   (code (define n1 (tree #f #f)))
+                   (code (define n2 (tree n1 n1)))   
+                   (code (define n3 (tree n2 n2)))))))
+
+
+(slide #:title "Motivating Example - Binary Trees" 
+       (scale 
+(code
+  (struct tree (left right))
+  (define n1 (tree #f #f))
+  (define n2 (tree n1 n1))
+  (define n3 (tree n2 n2))
+
+  (define tree-flow 
+    (smooth-flow '(default tree-2 tree-3)
+                 (make-named-flow
+                   'tree
+                   (map render-tree
+                        (list n1 n2 n3)))))
+
+  (define tree-code-flow
+    (smooth-flow '(default tree-2 tree-3)
+                 (make-named-steps
+                   'tree
+                   (list
+                     (code (define n1 (tree #f #f)))
+                     (code (define n2 (tree n1 n1)))   
+                     (code (define n3 (tree n2 n2)))))))
+
+  (flow-slide #:title (t "Binary Trees") '(default tree-2 tree-3)
+              (join-flows 
+                hc-append 
+                tree-code-flow
+                gap
+                tree-flow))) 0.5))
+
+(flow-slide #:title (t "Binary Trees") '(default tree-2 tree-3)
+            (join-flows 
+              hc-append 
+              tree-code-flow
+              gap
+              tree-flow))
+
 (slide #:title "Features"
        'next
        (t "Define and combine flows seperately")
@@ -360,32 +442,19 @@
        'next
        (t "Composing in space AND time")
        'next
-       (t "Abstract over and synthesize Picts and Slides"))
-(slide #:title "Project Goals and Future Work"
+       (t "Abstract over and synthesize Picts, Slides and Animations"))
+(slide #:title "Future Work"
        'next
-       (t "Animations")
+       (t "Publish Library")
        'next
-       (t "GUI interface")
-       'next
-       (t "Extend to use other rendering engines"))
+       (t "GUI integration"))
 
 (slide (code 
-           (provide 
-             make-flow 
-             make-steps
-             join-flows
-             flow-slide))
+         flow/flow
+         flow/stage
+         flow/transitions
+         flow/extra
+         )
        'next
        (t "Thank You"))
 
-;; composable stories
-;; features - define flows first, combine later
-;; features - use the full power of pict
-;; features - reusability
-;; second perspective - the pict "expression problem"
-;; third perspective - compose in space AND time
-;; fourth perspective - abstract over both pict and slide
-;; benefits - more natural 
-;; benefits - better code
-;; future work - animations
-;; future work - gui
