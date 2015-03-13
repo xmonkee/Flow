@@ -1,7 +1,9 @@
 #lang racket
 (provide
   make-named-flow
-  make-named-steps)
+  make-named-steps
+  scale-flow
+  )
 (require flow/flow)
 (require slideshow)
 
@@ -31,8 +33,8 @@
   (flow
     (scale (flow-canvas flw) factor)
     (for/hash 
-      ([(key pct) (in-hash (flow-alts flw))])
-      (values key (scale pct factor))))) 
+      ([(key pcts) (in-hash (flow-alts flw))])
+      (values key (map (lambda (pct) (scale pct factor)) pcts))))) 
 
 ;; Possible error in this. Loses picts
 (define (scale-flows factor flws)

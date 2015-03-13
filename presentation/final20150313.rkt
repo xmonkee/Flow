@@ -145,12 +145,12 @@
   (scale 
     (code 
       (define squares
-        (make-named-flow 'squares (cons (t "Flow 1") (map redsq '(50 100 150 200) 
-                                 '("scene 1" "scene 2" "scene 3" "scene 4"))))))
+        (make-named-flow 'squares 
+          (cons (t "Flow 1") 
+             (map redsq 
+                  '(50 100 150 200) 
+                  '("scene 1" "scene 2" "scene 3"))))))
     0.5))
-
-(define square-pict-code
-  (make-named-flow 'square-pict-code (list square-pict-code-1 square-pict-code-2)))
 
 (define square-stage-code
   (scale 
@@ -164,14 +164,42 @@
     0.5))
 
 (define square-code
-  (join-flows vl-append gap gap square-pict-code square-stage-code))
+  (flow-set-pict (make-flow (vl-append gap-size square-pict-code-1 square-stage-code)) 
+                 'code-2 square-pict-code-2))
+
 
 (flow-slide #:title (t "Flows - Making a Flow")
-            '(default squares-2 squares-3 squares-4)
+            '(default squares-2 squares-3 squares-4 code-2)
             (join-flows hc-append
               square-code 
               gap gap
               squares))
+
+(define count-flow
+  (scale-flow 3
+  (make-named-flow
+    'count
+    (list (t "1")
+          (map (compose1 t number->string) (range 2 10))
+          (t "10")))))
+
+(define count-code
+  (scale
+    (code
+      (define count-flow
+        (make-named-flow
+          'count
+          (list (t "1")
+                (map (compose1 t number->string) (range 2 10))
+                (t "10")))) )
+    0.5))
+
+(flow-slide #:title (t "Flows - Making Movies")
+            '(default 'count-2 'count-3 'count-4)
+            (join-flows vc-append
+                        count-code
+                        gap gap
+                        count-flow))
 
 
 (define circles
