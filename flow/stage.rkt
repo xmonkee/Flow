@@ -35,7 +35,7 @@
     rflows))
 
 (define (movie fps pcts)
-  (let ([timeout (if fps (/ 1 fps) 0.1)])
+  (let ([timeout (if fps (/ 1 fps) 0.05)])
     (if (empty? (cdr pcts))
       (slide #:timeout #f (car pcts))
       (begin

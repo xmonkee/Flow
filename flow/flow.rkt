@@ -21,8 +21,6 @@
 ;; Composed manyflows
 (struct manyflows (canvas children))
 
-;; Internal function used to keep a common canvas for a flow
-;; The canvas is the biggest bounding box of all picts in a flow
 (define (map-hash f h)
   (make-immutable-hash 
     (for/list ([(k v) h])
@@ -36,6 +34,8 @@
 (define (listify-hash h)
   (map-hash listify h))
 
+;; Internal function used to keep a common canvas for a flow
+;; The canvas is the biggest bounding box of all picts in a flow
 (define (max-box pct1 pct2)
   (let ([w (max (pict-width pct1) (pict-width pct2))]
         [h (max (pict-height pct1) (pict-height pct2))])

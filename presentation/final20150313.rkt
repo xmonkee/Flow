@@ -2,6 +2,7 @@
 (require flow/flow)
 (require flow/extra)
 (require flow/stage)
+(require flow/transitions)
 (require slideshow)
 (require slideshow/code)
 
@@ -100,16 +101,19 @@
 (pict-slide)
 (require "borrowed20150313.rkt")
 (pct/sld)
+
+
+(slide (t "Introducing Flow"))
 (slide 
-  #:title "Introducing Flow - A Better Abstraction"
+  #:title "Flow - A Better Abstraction"
   'next
   (t "A Flow is a self-contained story told in pictures")
   'next
-  (t "A Flow is a mapping from keys to Scenes")
+  (t "A Flow is a mapping from keys to picts")
   'next
-  (t "A Scene is a list of one of more picts")
+  (t "Flows are hirarchical datastructures"))
   'next
-  (t "Flows are hirarchical datastructures just as composable as Picts"))
+  (t "Flows are just as composable as Picts") 
 
 (define (redsq l txt)
   (cc-superimpose (colorize (filled-rectangle l l) "red")
@@ -150,7 +154,7 @@
              (map redsq 
                   '(50 100 150 200) 
                   '("scene 1" "scene 2" "scene 3"))))))
-    0.5))
+    0.8))
 
 (define square-stage-code
   (scale 
@@ -192,30 +196,23 @@
           (list (t "1")
                 (map (compose1 t number->string) (range 2 10))
                 (t "10")))) )
-    0.5))
-
-(flow-slide #:title (t "Flows - Making Movies")
-            '(default 'count-2 'count-3 'count-4)
-            (join-flows vc-append
-                        count-code
-                        gap gap
-                        count-flow))
-
+    0.8))
 
 (define circles
   (make-named-flow 'circles (cons (t "Flow 2") (map bluec '(50 100 150 200) 
                                '("scene 1" "scene 2" "scene 3" "scene 4")))))
 
-(flow-slide #:title (t "Flows - 2 Basic Flows") '(default 
+(flow-slide #:title (t "Flows - Composing Flows") '(default 
                                    squares-2 squares-3 squares-4 
                                    circles-2 circles-3 circles-4)
            (join-flows vc-append 
                        (scale 
                          (code 
-               (flow-slide #:title (t "Flows - 2 Basic Flows") '(default 
-                                                  squares-2 squares-3 squares-4 
-                                                  circles-2 circles-3 circles-4)
-                           (join-flows hc-append squares circles))) 0.5)
+               (flow-slide #:title (t "Flows - Composing Flows") 
+                           '(default 
+                             squares-2 squares-3 squares-4 
+                             circles-2 circles-3 circles-4)
+                           (join-flows hc-append squares circles))) 0.8)
                        (ghost (rectangle 100 100))
                        (join-flows hc-append squares circles)))
 
@@ -226,11 +223,12 @@
            (join-flows vc-append 
                        (scale 
                          (code 
-               (flow-slide #:title (t "Flows - 2 Basic Flows") '(default 
-                                                  (squares-2 circles-2) 
-                                                  (squares-3 circles-3) 
-                                                  (square-4 circles-4))
-                           (join-flows hc-append squares circles))) 0.5)
+               (flow-slide #:title (t "Flows - Evolving together") 
+                           '(default 
+                             (squares-2 circles-2) 
+                             (squares-3 circles-3) 
+                             (square-4 circles-4))
+                           (join-flows hc-append squares circles))) 0.8)
                        (ghost (rectangle 100 100))
                        (join-flows hc-append squares circles)))
 
@@ -241,13 +239,108 @@
            (join-flows vc-append 
                        (scale 
                          (code 
-               (flow-slide #:title (t "Flows - 2 Basic Flows") '(default 
-                                                  squares-2 circles-2 
-                                                  squares-3 circles-3 
-                                                  square-4 circles-4)
-                           (join-flows vc-append squares circles))) 0.5)
+               (flow-slide #:title (t "Flows - Rearranged and Interleaving") 
+                           '(default 
+                             squares-2 circles-2 
+                             squares-3 circles-3 
+                             square-4 circles-4)
+                           (join-flows vc-append squares circles))) 0.8)
                        (ghost (rectangle 100 100))
                        (join-flows vc-append squares circles)))
+
+(slide (t "Animations"))
+
+(define before-st (t "A flow is a mapping from keys to "))
+(define after-st (t " Scenes"))
+(define in-st (t "picts"))
+(define in-st- (pin-line in-st in-st lc-find in-st rc-find #:line-width 3))
+(define all-st (hc-append before-st in-st- after-st))
+
+(slide #:title "Flows and Animations"
+       (t "Design Choices:")
+       'alts
+       (list 
+         (list
+           (t "Just use many keyframes")
+           'next
+           (t "Advantage: Flows can handle animations as is")
+           'next
+           (t "Disadvantage: Animations have to be planned at staging")
+           'next
+           (t "Disadvantage: Difficult to work in transitions"))
+         (list 
+           (t "Replace keyframes with callbacks")
+           'next
+           (t "Advantage: Very easy to make transitions")
+           'next
+           (t "Disadvantage: Everything else"))
+         (list 
+           all-st
+           'next
+           (t "A Scene is a list of one of more picts")
+           'next
+           (t "Advantage: Flows fully self-contained again")
+           'next
+           (t "Disadvantage: Synchronization of Scenes")
+           'next
+           (t "Solution: Fixed fps"))
+         ))
+
+(flow-slide #:title (t "Animations - Making Movies")
+            '(default 'count-2 'count-3 'count-4)
+            (join-flows vc-append
+                        count-code
+                        gap gap
+                        count-flow))
+
+(define (map-flow f flw)
+  (flow (flow-canvas flw)
+        (for/hash ([(k v) (in-hash (flow-alts flw))])
+                  (values k (f v) ))))
+
+(define anim-code
+  (scale
+    (code 
+      (map-flow (compose1 fade-in car) squares))
+    0.8)
+  )
+
+(flow-slide #:title (t "Animations - Transitions")
+            '(default squares-2 squares-3 squares-4)
+            (join-flows vc-append 
+                        anim-code 
+                        gap gap
+                        (map-flow (compose1 fade-in car) squares)))
+
+(define (count-flow-n n)
+  (scale-flow 3
+  (make-named-flow
+    'count
+    (list (t "1")
+          (map (compose1 t number->string) (range 2 n))
+          (t (number->string n))))))
+
+(define count-code-n
+  (scale
+    (code
+      (define (count-flow-n n)
+        (scale-flow 3
+           (make-named-flow
+             'count
+             (list (t "1")
+                   (map (compose1 t number->string) (range 2 n))
+                   (t (number->string n)))))))
+      0.6))
+
+(flow-slide #:title (t "Animations - Synchronization")
+            '(default 10 count-2 count-3)
+            (join-flows vc-append 
+                        count-code-n
+                        gap gap
+                        (join-flows vc-append
+                           (join-flows hc-append (code (count-code-n 10)) gap (count-flow-n 10))
+                           gap gap
+                           (join-flows hc-append (code (count-code-n 20)) gap (count-flow-n 20)))))
 
 (slide #:title "Features"
        'next
